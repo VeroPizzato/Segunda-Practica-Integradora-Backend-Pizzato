@@ -6,7 +6,9 @@ const { Server } = require('socket.io')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')
+const { dbName, mongoURL} = require('./dbConfig')
 const sessionRouter = require('./routes/session')
+const jwtRouter = require('./routes/jwt')
 
 const cartsRouter = require('./routes/carts')
 // const { router: productsRouter, productsManager } = require('./routes/products')
@@ -48,8 +50,8 @@ app.use('/carts', express.static(`${__dirname}/../public`));
 
 app.use(session({
     store: MongoStore.create({
-        dbName: 'ecommerce',
-        mongoUrl: 'mongodb+srv://verizzato:Mavepi76@codercluster.wmmycws.mongodb.net/?retryWrites=true&w=majority&appName=CoderCluster', 
+        dbName,
+        mongoURL, 
         ttl: 60
     }),
     secret: 'secretCoder',
@@ -66,13 +68,11 @@ app.use('/api/products', productsRouter)
 app.use('/api/carts', cartsRouter)
 app.use('/', viewsRouter)
 app.use('/api/sessions', sessionRouter)
+app.use('/api', jwtRouter)
 
 const main = async () => {
 
-    await mongoose.connect('mongodb+srv://verizzato:Mavepi76@codercluster.wmmycws.mongodb.net/?retryWrites=true&w=majority&appName=CoderCluster',
-        {
-            dbName: 'ecommerce'
-        })
+    await mongoose.connect(mongoURL, {dbName})
 
     const ProductManager = new DbProductManager()
     await ProductManager.inicialize()
