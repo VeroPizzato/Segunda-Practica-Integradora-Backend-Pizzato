@@ -5,7 +5,7 @@ const { generateToken, verifyToken } = require('../utils/jwt')
 
 const router = Router()
 
-router.post('/api/login', async (req, res) => {
+router.post('/login', async (req, res) => {
     const { email, password } = req.body
 
     const user = await User.findOne({ email })
@@ -22,7 +22,7 @@ router.post('/api/login', async (req, res) => {
     res.status(200).json({ accessToken })
 })
 
-router.get('/api/private', verifyToken, (req, res) => {
+router.get('/private', verifyToken, (req, res) => {
     const { email } = req.authUser
     res.send(`Welcome ${email}, this is private and protected content`)
 })

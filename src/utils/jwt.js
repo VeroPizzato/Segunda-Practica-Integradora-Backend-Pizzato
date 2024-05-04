@@ -8,18 +8,18 @@ const generateToken = user => {
 }
 
 const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization
+    const authHeader = req.headers.authorization  // Authorization: "Bearer token"
     if (!authHeader) {
         return res.status(401).json({ error: 'Not authenticated!' })
     }
 
     const [, token] = authHeader.split(' ')
-    jwt.verify(token, PRIVATE_KEY, (err, signedPayload) => {
+    jwt.verify(token, PRIVATE_KEY, (err, credentials) => {
         if (err) {
             return res.status(403).json({ error: 'Invalid access token!' })
         }
 
-        req.authUser = signedPayload.user
+        req.authUser = credentials.user
         next()
     })
 }

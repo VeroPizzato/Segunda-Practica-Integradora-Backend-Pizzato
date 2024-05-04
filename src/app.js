@@ -50,10 +50,15 @@ app.use('/carts', express.static(`${__dirname}/../public`));
 
 app.use(session({
     store: MongoStore.create({
-        dbName,
-        mongoURL, 
+        dbName: 'ecommerce',
+        mongoUrl: 'mongodb+srv://verizzato:Mavepi76@codercluster.wmmycws.mongodb.net/?retryWrites=true&w=majority&appName=CoderCluster', 
         ttl: 60
     }),
+    // store: MongoStore.create({
+    //     dbName,
+    //     mongoURL, 
+    //     ttl: 60
+    // }),
     secret: 'secretCoder',
     resave: true,
     saveUninitialized: true
@@ -72,7 +77,12 @@ app.use('/api', jwtRouter)
 
 const main = async () => {
 
-    await mongoose.connect(mongoURL, {dbName})
+    //await mongoose.connect(mongoURL, {dbName})
+
+    await mongoose.connect('mongodb+srv://verizzato:Mavepi76@codercluster.wmmycws.mongodb.net/?retryWrites=true&w=majority&appName=CoderCluster',
+        {
+            dbName: 'ecommerce'
+        })
 
     const ProductManager = new DbProductManager()
     await ProductManager.inicialize()
