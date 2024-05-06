@@ -9,6 +9,10 @@ const schema = new mongoose.Schema({
         unique: true
     },
     password: String,
+    cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'carts'
+    },
     rol: {
         type: String,
         default: "usuario"

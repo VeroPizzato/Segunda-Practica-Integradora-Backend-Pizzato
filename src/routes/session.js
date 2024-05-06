@@ -2,6 +2,8 @@ const { Router } = require('express')
 const User = require('../dao/models/user')
 const { hashPassword } = require('../utils/hashing')
 const passport = require('passport')
+const passportMiddleware = require('../utils/passportMiddleware')
+const authorizationMiddleware = require('../utils/authorizationMiddleware')
 
 const router = Router()
 
@@ -58,5 +60,9 @@ router.get('/githubcallback', passport.authenticate('github', { failureRedirect:
     req.session.user = req.user
     res.redirect('/products')
 })
+
+router.get('/current', passportMiddleware('jwt'), authorizationMiddleware('user'), async (req, res) => { 
+    return res.json(req.user);
+});
 
 module.exports = router

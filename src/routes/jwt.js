@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid password' })
     }
 
-    const credentials = { id: user._id.toString(), email: user.email }
+    const credentials = { id: user._id.toString(), email: user.email, role: 'user' }
     const accessToken = generateToken(credentials)
     res.status(200).json({ accessToken })
 })

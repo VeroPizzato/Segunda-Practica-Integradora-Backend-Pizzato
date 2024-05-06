@@ -14,12 +14,12 @@ const verifyToken = (req, res, next) => {
     }
 
     const [, token] = authHeader.split(' ')
-    jwt.verify(token, PRIVATE_KEY, (err, credentials) => {
+    jwt.verify(token, PRIVATE_KEY, (err, signedPayload) => {
         if (err) {
             return res.status(403).json({ error: 'Invalid access token!' })
         }
 
-        req.authUser = credentials.user
+        req.authUser = signedPayload.user
         next()
     })
 }
