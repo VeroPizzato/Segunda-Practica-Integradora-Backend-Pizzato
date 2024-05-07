@@ -36,24 +36,13 @@ router.get('/failregister', (req, res) => {
     res.send({ status: 'error', message: 'Register failed!' })
 })
 
-router.post('/reset_password', async (req, res) => {
-    const { email, password } = req.body
-    if (!email || !password) {
-        return res.status(400).send('Invalid credentials!')
-    }
-    
-    // 1. verificar que el usuario exista en la BD
-    const user = await User.findOne({ email })  
-    if (!user) {
-        return res.status(401).send('User not found!')
-    }  
-
-    // actualizar la nueva contraseña
-    await User.updateOne({ email}, { $set: { password: hashPassword(password) } })
-
-    res.redirect('/login')
+router.post('/reset_password', passport.authenticate('reset_password', { failureRedirect: '/api/sessions/failreset' }), async (req, res) =>  {
+       res.redirect('/login')
 })
 
+router.get('/failreset', (req, res) => {
+    res.send({ status: 'error', message: 'Reset password failed!' })
+})
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }), (req, res) => { })
 
 router.get('/githubcallback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {

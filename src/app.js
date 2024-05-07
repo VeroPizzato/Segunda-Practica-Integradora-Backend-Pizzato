@@ -9,6 +9,7 @@ const MongoStore = require('connect-mongo')
 const { dbName, mongoURL} = require('./dbConfig')
 const sessionRouter = require('./routes/session')
 const jwtRouter = require('./routes/jwt')
+const cookieParser = require('cookie-parser')
 
 const cartsRouter = require('./routes/carts')
 // const { router: productsRouter, productsManager } = require('./routes/products')
@@ -64,7 +65,7 @@ app.use(session({
     saveUninitialized: true
 }));
 
-
+app.use(cookieParser())
 initializeStrategy()
 app.use(passport.initialize())
 app.use(passport.session())
@@ -77,7 +78,7 @@ app.use('/api', jwtRouter)
 
 const main = async () => {
 
-    //await mongoose.connect(mongoURL, {dbName})
+    // await mongoose.connect(mongoURL, {dbName})
 
     await mongoose.connect('mongodb+srv://verizzato:Mavepi76@codercluster.wmmycws.mongodb.net/?retryWrites=true&w=majority&appName=CoderCluster',
         {

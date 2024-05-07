@@ -24,4 +24,4 @@ const verifyToken = (req, res, next) => {
     })
 }
 
-module.exports = { generateToken, verifyToken }
+module.exports = { generateToken, verifyToken, secret: PRIVATE_KEY }

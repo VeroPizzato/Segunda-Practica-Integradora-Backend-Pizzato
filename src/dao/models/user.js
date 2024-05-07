@@ -11,11 +11,11 @@ const schema = new mongoose.Schema({
     password: String,
     cart: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'carts'
+        ref: 'Cart'
     },
     rol: {
         type: String,
-        default: "usuario"
+        default: "user"
     }
 })
 

@@ -1,25 +1,42 @@
 const passport = require('passport')
 const localStrategy = require('passport-local')
-const githubStrategy  = require('passport-github2')
+const githubStrategy = require('passport-github2')
 const User = require('../dao/models/user')
 const { hashPassword, isValidPassword } = require('../utils/hashing')
 const { clientID, clientSecret, callbackURL } = require('./github.private')
+const { secret } = require('../utils/jwt')
+const { Strategy, ExtractJwt } = require('passport-jwt')
 
 const LocalStrategy = localStrategy.Strategy
 const GithubStrategy = githubStrategy.Strategy
+const JwtStrategy = Strategy
 
-const initializeStrategy = () => {
+const cookieExtractor = req => req && req.cookies ? req.cookies['accessToken'] : null
+
+const initializeStrategy = () => {   
+    
+    passport.use('jwt', new JwtStrategy({
+        jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+        secretOrKey: secret
+    }, async (jwtPayload, done) => {
+        try {
+            return done(null, jwtPayload.user)
+        } catch (err) {
+            done(err)
+        }
+    }))
+
     passport.use('github', new GithubStrategy({
         clientID,
         clientSecret,
         callbackURL
     }, async (_accessToken, _refreshToken, profile, done) => {
         try {
-            console.log('Profile de github: ', profile, profile._json)            
+            console.log('Profile de github: ', profile, profile._json)
 
             const user = await User.findOne({ email: profile._json.email })
-                     
-            if (user) {            
+
+            if (user) {
                 return done(null, user)
             }
 
@@ -27,23 +44,24 @@ const initializeStrategy = () => {
             const fullName = profile._json.name
             const first_name = fullName.substring(0, fullName.lastIndexOf(' '))
             const last_name = fullName.substring(fullName.lastIndexOf(' ') + 1)
-            
+
             const newUser = {
                 first_name,
                 last_name,
                 age: 47,
                 email: profile._json.email,
-                password: ''
-            }                        
+                password: '',
+                cart: ""
+            }
 
             const result = await User.create(newUser)
             return done(null, result)
-        
+
         }
         catch (err) {
             done(err)
         }
-    }))    
+    }))
 
     // estrategia para el registro de usuarios
     passport.use('register', new LocalStrategy({
@@ -51,7 +69,7 @@ const initializeStrategy = () => {
         usernameField: 'email'
     }, async (req, username, password, done) => {
 
-        const { first_name, last_name, age, email, rol } = req.body
+        const { first_name, last_name, age, email } = req.body
 
         try {
             const user = await User.findOne({ email: username })
@@ -69,7 +87,7 @@ const initializeStrategy = () => {
                 age: +age,
                 email,
                 password: hashPassword(password),
-                rol
+                cart: ""
             }
             const result = await User.create(newUser)
 
@@ -77,40 +95,42 @@ const initializeStrategy = () => {
             return done(null, result)
         }
         catch (err) {
-            return done('Error al obtener el usuario: ' + err)
+            return done(err)
         }
     }))
 
-    // al registrar o hacer login del usuario, pasamos el modelo de user al callback done
-    // passport necesita serializar este modelo, para guardar una referencia al usuario en la sesión
-    // simplemente podemos usar su id
-    passport.serializeUser((user, done) => {
-        console.log('serialized!', user)
-        if (user.email === "adminCoder@coder.com") {
-            // Serialización especial para el usuario 'adminCoder@coder.com'
-            done(null, { first_name: user.first_name, last_name: user.last_name, age: user.age, email: user.email, role: user.rol });
-        } else {
-            done(null, user._id)
-        }
-    })
+    passport.use('reset_password', new LocalStrategy({
+        usernameField: 'email'
+    }, async (username, password, done) => {
+        try {
+            if (!username || !password) {
+                return done(null, false)
+            }
+            
+            let user
+            if (username === "adminCodercoder.com") {
+                return done(null, false)
+            }
+            // 1. verificar que el usuario exista en la BD
+            user = await User.findOne({ email: username })
+            if (!user) {
+                return done(null, false)
+            }
 
-    // para restaurar al usuario desde la sesión, passport utiliza el valor serializado y vuelve a generar al user
-    // el cual colocará en req.user para que nosotros podamos usar
-    passport.deserializeUser(async (id, done) => {
-        console.log('deserialized!', id)
-        if (id.email === 'adminCoder@coder.com') {
-            // Deserialización especial para el usuario 'adminCoder@coder.com'
-            done(null, id);
-        } else {
-            const user = await User.findById(id);
-            done(null, user);
-        }        
-    })
+            // actualizar la nueva contraseña
+            await User.updateOne({ email: username }, { $set: { password: hashPassword(password) } })
+
+            return done(null, user)
+        }
+        catch (err) {
+            return done(err)
+        }
+    }))
 
     passport.use('login', new LocalStrategy({
         usernameField: 'email'
     }, async (username, password, done) => {
-        try {           
+        try {
             if (!username || !password) {
                 return done(null, false)
             }
@@ -118,11 +138,12 @@ const initializeStrategy = () => {
             let user = await User.findOne({ email: username });
             if (username === "adminCoder@coder.com" && password === "adminCod3r123") {
                 // Datos de sesión para el usuario coder Admin
-                user = {                    
+                user = {
                     first_name: "Usuario",
-                    last_name: "de CODER", 
+                    last_name: "de CODER",
                     age: 21,
-                    email: "adminCoder@coder.com",                      
+                    email: "adminCoder@coder.com",
+                    cart: "",
                     rol: "admin"
                 };
                 return done(null, user);
@@ -139,12 +160,38 @@ const initializeStrategy = () => {
                 return done(null, false);
             }
 
-            return done(null, user);            
+            return done(null, user);
         }
         catch (err) {
             done(err)
         }
     }))
+
+    // al registrar o hacer login del usuario, pasamos el modelo de user al callback done
+    // passport necesita serializar este modelo, para guardar una referencia al usuario en la sesión
+    // simplemente podemos usar su id
+    passport.serializeUser((user, done) => {
+        console.log('serialized!', user)
+        if (user.email === "adminCoder@coder.com") {
+            // Serialización especial para el usuario 'adminCoder@coder.com'
+            done(null, { first_name: user.first_name, last_name: user.last_name, age: user.age, email: user.email, rol: user.rol });
+        } else {
+            done(null, user._id)
+        }
+    })
+
+    // para restaurar al usuario desde la sesión, passport utiliza el valor serializado y vuelve a generar al user
+    // el cual colocará en req.user para que nosotros podamos usar
+    passport.deserializeUser(async (id, done) => {
+        console.log('deserialized!', id)
+        if (id.email === 'adminCoder@coder.com') {
+            // Deserialización especial para el usuario 'adminCoder@coder.com'
+            done(null, id);
+        } else {
+            const user = await User.findById(id);
+            done(null, user);
+        }
+    })
 }
 
 module.exports = initializeStrategy
