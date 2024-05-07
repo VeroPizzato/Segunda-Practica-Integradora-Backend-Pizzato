@@ -2,6 +2,7 @@ const { Router } = require('express')
 const User = require('../dao/models/user')
 const { isValidPassword } = require('../utils/hashing')
 const { generateToken, verifyToken } = require('../utils/jwt')
+// const passport = require('passport')
 const passportMiddleware = require('../utils/passportMiddleware')
 const authorizationMiddleware = require('../utils/authorizationMiddleware')
 
@@ -38,7 +39,8 @@ router.post('/login', async (req, res) => {
         }
     }   
 
-    const credentials = { id: user._id.toString(), email: user.email, rol: 'user' }
+    // const credentials = { id: user._id.toString(), email: user.email, rol: 'user' }
+    const credentials = { id: user._id.toString(), email: user.email, rol: user.rol }
     const accessToken = generateToken(credentials)
     res.cookie('accessToken', accessToken, { maxAge: 60 * 1000, httpOnly: true })
 
@@ -50,8 +52,17 @@ router.get('/private', verifyToken, (req, res) => {
     res.send(`Welcome ${email}, this is private and protected content`)
 })
 
+// router.get('/current', passport.authenticate('jwt', { session: false}), async (req, res) => { 
+//     return res.json(req.user)   // Si no envio un token en la cookie, passport me devuelve un 401 (Unauthorized)   
+// })
+
+// Para devolver un error mas significativo durante mis estrategias de passport si no le mando token o mando un token erroneo
 router.get('/current', passportMiddleware('jwt'), authorizationMiddleware('user'), async (req, res) => { 
-    return res.json(req.user)    
-})
+    return res.json(req.user);  
+});
+
+// router.get('/current', passportMiddleware('jwt'), authorizationMiddleware('admin'), async (req, res) => { 
+//     return res.json(req.user);  
+// });
 
 module.exports = router

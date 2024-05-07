@@ -1,4 +1,4 @@
-const authorizationMiddleware = rolParam => {
+const authorizationMiddleware = (rolParam) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).send({ error: 'User should authenticate' })

@@ -20,7 +20,7 @@ const initializeStrategy = () => {
         secretOrKey: secret
     }, async (jwtPayload, done) => {
         try {
-            return done(null, jwtPayload.user)
+            return done(null, jwtPayload.user)  // req.user
         } catch (err) {
             done(err)
         }
