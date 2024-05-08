@@ -50,4 +50,10 @@ router.get('/githubcallback', passport.authenticate('github', { failureRedirect:
     res.redirect('/products')
 })
 
+router.get('/current', (req, res) => {
+    if (!req.user) return res.status(400).send('No hay usuario logueado')
+    req.session.user = { first_name: req.user.first_name, last_name: req.user.last_name, age: req.user.age, email: req.user.email, rol: req.user.rol }   
+    res.redirect('/profile')
+})
+
 module.exports = router
