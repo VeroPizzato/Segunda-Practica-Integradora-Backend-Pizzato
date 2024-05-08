@@ -50,7 +50,8 @@ router.get('/githubcallback', passport.authenticate('github', { failureRedirect:
     res.redirect('/products')
 })
 
-router.get('/current', passportMiddleware('jwt'), authorizationMiddleware('user'), async (req, res) => { 
+router.get('/current', async (req, res) => { 
+    console.log(req.user)
     return res.json(req.user);
 });
 

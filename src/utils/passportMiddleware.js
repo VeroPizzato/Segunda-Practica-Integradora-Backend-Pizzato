@@ -1,6 +1,6 @@
 const passport = require('passport')
 
-const passportMiddleware = strategy => {
+const passportMiddleware = (strategy) => {
     return async (req, res, next) => {
         const passportAuthenticateMiddleware = passport.authenticate(strategy, function (err, user, info) {
 

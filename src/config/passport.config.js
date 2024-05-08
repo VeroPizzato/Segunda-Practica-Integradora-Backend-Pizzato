@@ -152,12 +152,12 @@ const initializeStrategy = () => {
             // 1. verificar que el usuario exista en la BD           
             if (!user) {
                 console.log("User doesn't exist")
-                return done(null, false);
+                return done(null, false, "User doesn't exist");
             }
 
             // 2. validar su password
             if (!isValidPassword(password, user.password)) {
-                return done(null, false);
+                return done(null, false, "Invalid Password");
             }
 
             return done(null, user);
