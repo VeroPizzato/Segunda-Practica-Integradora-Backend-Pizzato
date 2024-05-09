@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
             last_name: "de CODER", 
             age: 21,
             email: "adminCoder@coder.com",  
-            cart: "",                    
+            cart: null,                    
             rol: "admin",
             _id: "jhhasgñjglsargj355ljasg"
         }        
