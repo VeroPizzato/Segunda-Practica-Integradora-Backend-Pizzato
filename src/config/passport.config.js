@@ -142,7 +142,8 @@ const initializeStrategy = () => {
                     first_name: "Usuario",
                     last_name: "de CODER",
                     age: 21,
-                    email: null,
+                    email: username,
+                    cart: null,
                     rol: "admin"
                 };
                 return done(null, user);
