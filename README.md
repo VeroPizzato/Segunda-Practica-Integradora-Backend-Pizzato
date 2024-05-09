@@ -1,6 +1,6 @@
 Para probar el login con github se debe crear dentro de la carpeta src/config el archivo github.private.js con las credenciales appId, clientID, clientSecret y callbackURL.
 
-El archivo github.private.js con mis datos de conexion a github es:
+Archivo github.private.js con mis datos de conexion a github:
 
 module.exports = {
     appId: '886437',
